@@ -21,7 +21,7 @@ RUN mkdir -p build \
     && make -j$(nproc)
 
 # Set environment variables
-ENV PLUGIN_LIBS="${TRT_OSSPATH}/build/out/libnvinfer_plugin.so"
+ENV LD_PRELOAD_PATH="${TRT_OSSPATH}:${LD_PRELOAD_PATH}"
 ENV CUDA_MODULE_LOADING=LAZY
 
 # Prepare the environment
@@ -42,7 +42,6 @@ COPY . /workspace/voltaML-fast-stable-diffusion
 
 # Set environment variables
 ENV LOG_LEVEL=INFO
-ENV TENSORRT_ENGINE_PATH="/workspace/voltaML-fast-stable-diffusion/engine"
 
 # Run the server
 RUN chmod +x scripts/start.sh

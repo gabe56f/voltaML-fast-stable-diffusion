@@ -333,11 +333,34 @@ class GPU:
 
         # TODO: Lock the GPU while building the engine, with propper checks in the cluster load balancer
 
-        from .inference.tensorrt import TensorRTModel
-
         def build():
-            model = TensorRTModel(model_id=request.model_id, use_f32=False)
-            model.generate_engine(request=request)
+            from core.inference.volta_accelerate import TRTModel
+
+            trt_model = TRTModel(
+                model_path=request.model_id,
+                denoising_steps=25,
+                denoising_fp16=True,
+                hf_token=os.environ["HUGGINGFACE_TOKEN"],
+                verbose=False,
+                nvtx_profile=False,
+                max_batch_size=9,
+            )
+            logger.debug("Loading engines...")
+            trt_model.loadEngines(
+                engine_dir="engine/" + request.model_id,
+                onnx_dir="onnx",
+                onnx_opset=16,
+                opt_batch_size=1,
+                opt_image_height=512,
+                opt_image_width=512,
+                force_export=False,
+                force_optimize=False,
+                force_build=False,
+                minimal_optimization=False,
+                static_batch=True,
+                static_shape=True,
+                enable_preview=False,
+            )
 
         data, err = await run_in_thread_async(func=build)
 
